@@ -75,6 +75,23 @@ function Id_getFirstBit(id){
     return firstActive
 }
 
+//Horribly inefficient but it is only used for some tests
+function Id_compare(a, b){
+    //JS integers are signed be default so we cannot compare directly
+    //thus we do it bit by bit
+    for(var i = 0; i < 256; i++){
+        var ba = Id_bitAt(a, i)
+        var bb = Id_bitAt(b, i)
+
+        if(ba < bb){
+            return -1
+        }else if(ba > bb){
+            return 1
+        }
+    }
+    return 0
+}
+
 function RoutingTable(ids){
     if(ids.length == 1){
         return {
@@ -123,6 +140,32 @@ function RT_toString(rt, level){
     }else{
         return lineStart + "(b:" + rt.bit + ",s:" + rt.size + ")\n" +
             RT_toString(rt.zero, level + 1) + "\n"+ RT_toString(rt.one, level + 1)
+    }
+}
+
+function RT_findClosest(rt, id, n){
+    if(n == rt.size){
+        if(rt.bit == -1){
+            return [rt.id]
+        }else{
+            return RT_findClosest(rt.zero, id, rt.zero.size).concat(RT_findClosest(rt.one, id, rt.one.size))
+        }
+    }
+
+    var good = null
+    var bad = null
+    if(Id_bitAt(id, rt.bit) == 0){
+        good = rt.zero
+        bad = rt.one
+    }else{
+        good = rt.one
+        bad = rt.zero
+    }
+
+    if(good.size >= n){
+        return RT_findClosest(good, id, n)
+    }else{
+        return RT_findClosest(good, id, good.size).concat(RT_findClosest(bad, id, n - good.size))
     }
 }
 
