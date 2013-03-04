@@ -2,16 +2,21 @@
 
 var ID_SIZE = 256/32
 
+//Create a new unitialized id
 function Id(){
+    //An id is just a soup of bits, use a typed array to gain performance
     return Uint32Array(ID_SIZE)
 }
 
+//Puts random data in the id
 function Id_randomize(id){
     for(var i in id){
+        //I do not trust Math.floor(Math.random() * 0xffffffff)
         id[i] = Math.floor(Math.random() * 65536) * 65536 + Math.floor(Math.random() * 65536)
     }
 }
 
+//A nice hexadecimal representation of the id
 function Id_toString(id){
     var res = []
     var digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"]
@@ -29,6 +34,8 @@ function Id_toString(id){
     return res.join("")
 }
 
+//Return an id that is the distance between two othe ids
+//It is the XOR distance
 function Id_distance(a, b){
     var data = Id()
     for(var i in data){
@@ -37,6 +44,7 @@ function Id_distance(a, b){
     return data
 }
 
+//Returns the value of the bit at the given position
 function Id_bitAt(id, pos){
     var value = id[Math.floor(pos / 32)]
     if(((value << (pos % 32)) & 0x80000000) != 0){
@@ -45,10 +53,13 @@ function Id_bitAt(id, pos){
     return 0
 }
 
+//Returns the index of first non-null bit
+//Useful for distances
 function Id_getFirstBit(id){
     var firstActive = 0
     var firstActiveInt = -1
 
+    //At first go uint32 by uint32
     for(var i in id){
         if(firstActiveInt == -1){
             if(id[i] == 0){
@@ -59,12 +70,14 @@ function Id_getFirstBit(id){
         }
     }
 
+    //it is the null id
     if(firstActiveInt == -1){
         return
     }
 
     var active = id[firstActiveInt]
 
+    //then go bit by bit
     for(var i = 0; i < 32; i++){
         if((active & 0x80000000) == 0){
             firstActive ++
@@ -75,6 +88,7 @@ function Id_getFirstBit(id){
     return firstActive
 }
 
+//A comparator for ids
 //Horribly inefficient but it is only used for some tests
 function Id_compare(a, b){
     //JS integers are signed be default so we cannot compare directly
@@ -92,8 +106,14 @@ function Id_compare(a, b){
     return 0
 }
 
+//Given an array of ids, returns a routing table RT for these ids
+//RT.size is the number of ids in the table
+//if RT is not a leaf then RT.zero and RT.one are the sub-routing tables
+//RT.bit is the index of the bit the differenciates RT.zero and RT.one. If RT.bit = 0 then RT is a leaf
+//id is one id that is in the table, or the leaf's id
 function RoutingTable(ids){
     if(ids.length == 1){
+        //Return a leaf
         return {
             size: 1,
             zero: null,
@@ -103,12 +123,14 @@ function RoutingTable(ids){
         }
     }
 
+    //Compute the bit that will split the id set
     var splitBit = 1000
     for(var i = 1; i < ids.length; i++){
         var bit = Id_getFirstBit(Id_distance(ids[0], ids[i]))
         splitBit = Math.min(bit, splitBit)
     }
 
+    //Make the sets
     var zero = []
     var one = []
 
@@ -129,6 +151,7 @@ function RoutingTable(ids){
     }
 }
 
+//Gives a string representing a routing table, contains newlines
 function RT_toString(rt, level){
     level = level || 0
     var lineStart = ""
@@ -143,7 +166,9 @@ function RT_toString(rt, level){
     }
 }
 
+//Returns the n ids closest to id in the routing table
 function RT_findClosest(rt, id, n){
+    //We want everything
     if(n == rt.size){
         if(rt.bit == -1){
             return [rt.id]
@@ -152,6 +177,7 @@ function RT_findClosest(rt, id, n){
         }
     }
 
+    //Select the right sub routing table
     var good = null
     var bad = null
     if(Id_bitAt(id, rt.bit) == 0){
@@ -162,6 +188,7 @@ function RT_findClosest(rt, id, n){
         bad = rt.zero
     }
 
+    //Get as many ids as possible from the good set
     if(good.size >= n){
         return RT_findClosest(good, id, n)
     }else{
