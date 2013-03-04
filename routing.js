@@ -1,5 +1,7 @@
 "use strict"
 
+//We use C-like function applied on structs because we might need to pass Ids and RTs to webworkers
+
 var ID_SIZE = 256/32
 
 //Create a new unitialized id
