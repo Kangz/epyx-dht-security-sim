@@ -37,6 +37,14 @@ function Id_distance(a, b){
     return data
 }
 
+function Id_bitAt(id, pos){
+    var value = id[Math.floor(pos / 32)]
+    if(((value << (pos % 32)) & 0x80000000) != 0){
+        return 1
+    }
+    return 0
+}
+
 function Id_getFirstBit(id){
     var firstActive = 0
     var firstActiveInt = -1
@@ -57,8 +65,6 @@ function Id_getFirstBit(id){
 
     var active = id[firstActiveInt]
 
-    console.log(active)
-
     for(var i = 0; i < 32; i++){
         if((active & 0x80000000) == 0){
             firstActive ++
@@ -68,3 +74,56 @@ function Id_getFirstBit(id){
 
     return firstActive
 }
+
+function RoutingTable(ids){
+    if(ids.length == 1){
+        return {
+            size: 1,
+            zero: null,
+            one:null,
+            bit: -1,
+            id: ids[0],
+        }
+    }
+
+    var splitBit = 1000
+    for(var i = 1; i < ids.length; i++){
+        var bit = Id_getFirstBit(Id_distance(ids[0], ids[i]))
+        splitBit = Math.min(bit, splitBit)
+    }
+
+    var zero = []
+    var one = []
+
+    for(var i in ids){
+        if(Id_bitAt(ids[i], splitBit) == 0){
+            zero.push(ids[i])
+        }else{
+            one.push(ids[i])
+        }
+    }
+
+    return {
+        size: ids.length,
+        zero: RoutingTable(zero),
+        one: RoutingTable(one),
+        bit: splitBit,
+        id: ids[0],
+    }
+}
+
+function RT_toString(rt, level){
+    level = level || 0
+    var lineStart = ""
+    for(var i = 0; i < level; i++){
+        lineStart += "  "
+    }
+    if(rt.bit == -1){
+        return lineStart + Id_toString(rt.id)
+    }else{
+        return lineStart + "(b:" + rt.bit + ",s:" + rt.size + ")\n" +
+            RT_toString(rt.zero, level + 1) + "\n"+ RT_toString(rt.one, level + 1)
+    }
+}
+
+
