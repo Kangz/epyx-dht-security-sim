@@ -5,31 +5,33 @@ var ID_SIZE = 256/32
 //Create a new unitialized id
 function Id(){
     //An id is just a soup of bits, use a typed array to gain performance
-    return Uint32Array(ID_SIZE)
+    return {data: Uint32Array(ID_SIZE)}
 }
 
 //Puts random data in the id
 function Id_randomize(id){
-    for(var i in id){
+    var data = id.data
+    for(var i in id.data){
         //I do not trust Math.floor(Math.random() * 0xffffffff)
-        id[i] = Math.floor(Math.random() * 65536) * 65536 + Math.floor(Math.random() * 65536)
+        id.data[i] = Math.floor(Math.random() * 65536) * 65536 + Math.floor(Math.random() * 65536)
     }
 }
 
 //A nice hexadecimal representation of the id
 function Id_toString(id){
+    var data = id.data
     var res = []
     var digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"]
-    for(var i in id){
-        var value = Math.floor(id[i] / 65536)
+    for(var i in data){
+        var value = Math.floor(data[i] / 65536)
         res.push(digits[Math.floor(value / 16 / 16 / 16) % 16])
         res.push(digits[Math.floor(value / 16 / 16) % 16])
         res.push(digits[Math.floor(value / 16) % 16])
         res.push(digits[value % 16])
-        res.push(digits[Math.floor(id[i] / 16 / 16 / 16) % 16])
-        res.push(digits[Math.floor(id[i] / 16 / 16) % 16])
-        res.push(digits[Math.floor(id[i] / 16) % 16])
-        res.push(digits[id[i] % 16])
+        res.push(digits[Math.floor(data[i] / 16 / 16 / 16) % 16])
+        res.push(digits[Math.floor(data[i] / 16 / 16) % 16])
+        res.push(digits[Math.floor(data[i] / 16) % 16])
+        res.push(digits[data[i] % 16])
     }
     return res.join("")
 }
@@ -37,16 +39,19 @@ function Id_toString(id){
 //Return an id that is the distance between two othe ids
 //It is the XOR distance
 function Id_distance(a, b){
-    var data = Id()
+    var dataa = a.data
+    var datab = b.data
+    var id = Id()
+    var data = id.data
     for(var i in data){
-        data[i] = a[i] ^ b[i]
+        data[i] = dataa[i] ^ datab[i]
     }
-    return data
+    return id
 }
 
 //Returns the value of the bit at the given position
 function Id_bitAt(id, pos){
-    var value = id[Math.floor(pos / 32)]
+    var value = id.data[Math.floor(pos / 32)]
     if(((value << (pos % 32)) & 0x80000000) != 0){
         return 1
     }
@@ -59,10 +64,12 @@ function Id_getFirstBit(id){
     var firstActive = 0
     var firstActiveInt = -1
 
+    var data = id.data
+
     //At first go uint32 by uint32
-    for(var i in id){
+    for(var i in data){
         if(firstActiveInt == -1){
-            if(id[i] == 0){
+            if(data[i] == 0){
                 firstActive += 32
             }else{
                 firstActiveInt = i
@@ -75,7 +82,7 @@ function Id_getFirstBit(id){
         return
     }
 
-    var active = id[firstActiveInt]
+    var active = data[firstActiveInt]
 
     //then go bit by bit
     for(var i = 0; i < 32; i++){
