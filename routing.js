@@ -7,13 +7,13 @@ var ID_SIZE = 256/32
 //Create a new unitialized id
 function Id(){
     //An id is just a soup of bits, use a typed array to gain performance
-    return {data: Uint32Array(ID_SIZE)}
+    return {data: new Uint32Array(ID_SIZE)}
 }
 
 //Puts random data in the id
 function Id_randomize(id){
     var data = id.data
-    for(var i in id.data){
+    for(var i = 0; i < data.length; i++){
         //I do not trust Math.floor(Math.random() * 0xffffffff)
         id.data[i] = Math.floor(Math.random() * 65536) * 65536 + Math.floor(Math.random() * 65536)
     }
@@ -24,7 +24,7 @@ function Id_toString(id){
     var data = id.data
     var res = []
     var digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"]
-    for(var i in data){
+    for(var i = 0; i < data.length; i++){
         var value = Math.floor(data[i] / 65536)
         res.push(digits[Math.floor(value / 16 / 16 / 16) % 16])
         res.push(digits[Math.floor(value / 16 / 16) % 16])
@@ -45,7 +45,7 @@ function Id_distance(a, b){
     var datab = b.data
     var id = Id()
     var data = id.data
-    for(var i in data){
+    for(var i = 0; i < data.length; i++){
         data[i] = dataa[i] ^ datab[i]
     }
     return id
@@ -69,7 +69,7 @@ function Id_getFirstBit(id){
     var data = id.data
 
     //At first go uint32 by uint32
-    for(var i in data){
+    for(var i = 0; i < data.length; i++){
         if(firstActiveInt == -1){
             if(data[i] == 0){
                 firstActive += 32
