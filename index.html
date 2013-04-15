@@ -1,0 +1,66 @@
+<html>
+    <head>
+        <meta charset='utf-8'>
+        <title>Stuff</title>
+        <script type="text/javascript" src="routing.js"></script>
+        <script type="text/javascript" src="simulation.js"></script>
+        <script type="text/javascript">
+
+function doit(){
+    var replication = parseInt(document.getElementById("replication").value)
+    var size = parseInt(document.getElementById("size").value)
+    var num = parseInt(document.getElementById("number").value)
+
+    console.log("replication: " + replication + ", size: " + size + ", number: " + num)
+
+    var bigNetwork = size > 10000;
+
+    console.log("bigNetwork: " + bigNetwork);
+
+    var simParameter = bigNetwork ? {randomApproxPull: true}: {randomPull: true};
+    var data = bigNetwork ?  makeSimulationData(size, replication) : undefined;
+
+    var FP = FastPropagationSimulation;
+    var SP = FastPropagationSimulation;
+
+    var onSim = function(res, type){
+        document.getElementById(type).value += JSON.stringify(res) + ",\n"
+    }
+
+    for(var i = 0; i < num; i++){
+        dosim(FP, data, simParameter, size, replication, function(res){onSim(res, "FP")});
+        dosim(SP, data, simParameter, size, replication, function(res){onSim(res, "SP")});
+    }
+}
+
+function dosim(simType, data, parameter, size, replication, callback){
+    data = data || makeSimulationData(size, replication)
+    var sim = new simType(data, parameter)
+    var res = sim.run()
+    callback(res)
+}
+        </script>
+    </head>
+    <body>
+        <p>
+            Facteur de réplication <input id="replication" type="text" value="5"/>
+        </p>
+        <p>
+            Taille du réseau <input id="size" type="text"/>
+        </p>
+        <p>
+            Nombre de simulation <input id="number" type="text"/>
+        </p>
+        <p>
+            <button onclick="doit()">Lancer la simulation</button>
+        </p>
+        <p>
+            Fast propagation results
+        </p>
+        <textarea id="FP"></textarea>
+        <p>
+            Slow propagation results
+        </p>
+        <textarea id="SP"></textarea>
+    </body>
+</html>
