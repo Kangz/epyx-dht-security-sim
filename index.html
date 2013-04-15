@@ -10,6 +10,7 @@ function doit(){
     var replication = parseInt(document.getElementById("replication").value)
     var size = parseInt(document.getElementById("size").value)
     var num = parseInt(document.getElementById("number").value)
+    var threads = parseInt(document.getElementById("threads").value)
 
     console.log("replication: " + replication + ", size: " + size + ", number: " + num)
 
@@ -23,13 +24,57 @@ function doit(){
     var FP = FastPropagationSimulation;
     var SP = FastPropagationSimulation;
 
-    var onSim = function(res, type){
-        document.getElementById(type).value += JSON.stringify(res) + ",\n"
+    var counters = {
+        "FP": 0,
+        "SP": 0,
     }
 
-    for(var i = 0; i < num; i++){
-        dosim(FP, data, simParameter, size, replication, function(res){onSim(res, "FP")});
-        dosim(SP, data, simParameter, size, replication, function(res){onSim(res, "SP")});
+    var changeStatus = function(text){
+        document.getElementById("status").textContent = text
+    }
+
+    var onWorkerFinish
+    var workers = []
+
+    var launchWorker = function(workerId){
+        if(counters["FP"] < counters["SP"] && counters["FP"] < num){
+            counters["FP"] ++
+            workers[workerId].postMessage({
+                data: data,
+                replication: replication,
+                size: size,
+                type: "FP",
+                parameter: simParameter,
+                workerId: workerId,
+            })
+        }else if(counters["SP"] < num){
+            counters["SP"] ++
+            workers[workerId].postMessage({
+                data: data,
+                replication: replication,
+                size: size,
+                type: "SP",
+                parameter: simParameter,
+                workerId: workerId,
+            })
+        }else{
+            changeStatus("Simulation finie.")
+        }
+    }
+
+    var nJobsFinished = 0
+
+    onWorkerFinish = function(e){
+        nJobsFinished ++;
+        document.getElementById(e.data.type).value += JSON.stringify(e.data.res) + ",\n"
+        setTimeout(launchWorker(e.data.workerId), 100)
+        changeStatus("Simulation en cours (" + nJobsFinished + "/" + 2*num + ").")
+    }
+
+    for(var i = 0; i < threads; i++){
+        workers[i] = new Worker("worker-sim.js")
+        workers[i].onmessage = onWorkerFinish
+        launchWorker(i)
     }
 }
 
@@ -52,7 +97,12 @@ function dosim(simType, data, parameter, size, replication, callback){
             Nombre de simulation <input id="number" type="text"/>
         </p>
         <p>
+            Nombre de threads <input id="threads" value="4" type="text"/>
+        </p>
+        <p>
             <button onclick="doit()">Lancer la simulation</button>
+        </p>
+        <p id="status">
         </p>
         <p>
             Fast propagation results
