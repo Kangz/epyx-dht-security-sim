@@ -45,7 +45,7 @@ function makeGraphic(propagationMethod, processData) {
         data = processData.map(function(p) {return p(rawData)})
 
         var xscale = d3.scale.log()
-                       .domain([1, d3.max(d3.transpose(data)[0].map(function(d) {return d3.max(d)}))])
+                       .domain([30, d3.max(d3.transpose(data)[0].map(function(d) {return d3.max(d)}))])
                        .range([padding, w - padding])
 
         var yscale = d3.scale.linear()
