@@ -17,10 +17,10 @@
         <script src="http://d3js.org/d3.v3.min.js" type="text/javascript"></script>
         <script type="text/javascript">
 
-var nodeNumbers = [100, 300, 1000, 3000, 10000, 30000, 100000, 300000, 1000000];
+var nodeNumbers = [100, 300, 1000, 3000, 10000, 30000, 100000, 300000, 1000000]
 var w = 500
 var h = 300
-var padding = 20
+var padding = 30
 
 function makeGraphic(propagationMethod, processData) {
     var rawData = []
@@ -42,17 +42,17 @@ function makeGraphic(propagationMethod, processData) {
 
     loop(0, function() {
 
-        data = processData(rawData)
+        data = processData.map(function(p) {return p(rawData)})
 
         var xscale = d3.scale.log()
-                       .domain([1, d3.max(data[0])])
+                       .domain([1, d3.max(d3.transpose(data)[0].map(function(d) {return d3.max(d)}))])
                        .range([padding, w - padding])
 
         var yscale = d3.scale.linear()
-                       .domain([0, d3.max(data[1])])
+                       .domain([0, d3.max(d3.transpose(data)[1].map(function(d) {return d3.max(d)}))])
                        .range([h - padding, padding])
 
-        data = d3.transpose(data)
+        data = data.map(d3.transpose)
 
         var xaxis = d3.svg.axis()
                           .scale(xscale)
@@ -87,23 +87,26 @@ function makeGraphic(propagationMethod, processData) {
                              return yscale(d[1])
                        })
 
-        svg.append("path")
-           .style("fill", "none")
-           .style("stroke-width", "1px")
-           .style("stroke", "black")
-           .attr("d", line(data))
+        data.forEach(function(subData) {
+            var g = svg.append("g")
+            g.append("path")
+             .style("fill", "none")
+             .style("stroke-width", "1px")
+             .style("stroke", "black")
+             .attr("d", line(subData))
 
-        svg.selectAll("circle")
-           .data(data)
-           .enter()
-           .append("circle")
-           .attr("cx", function(d) {
-               return xscale(d[0])
-         }).attr("cy", function(d) {
-               return yscale(d[1])
-         }).attr("r", function() {
-               return 2.5
-         })
+            g.selectAll("circle")
+             .data(subData)
+             .enter()
+             .append("circle")
+             .attr("cx", function(d) {
+                   return xscale(d[0])
+           }).attr("cy", function(d) {
+                   return yscale(d[1])
+           }).attr("r", function() {
+                   return 2.5
+           })
+        })
     })
 }
 
@@ -136,10 +139,8 @@ function processMax(rawData) {
 }
 
 window.onload = function() {
-    makeGraphic("FP", processMean);
-    makeGraphic("SP", processMean);
-    makeGraphic("FP", processMax);
-    makeGraphic("SP", processMax);
+    makeGraphic("FP", [processMean, processMax])
+    makeGraphic("SP", [processMean, processMax])
 }
 
         </script>
