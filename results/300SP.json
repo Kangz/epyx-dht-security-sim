@@ -1,3 +1,4 @@
+[
 {"runningTime":8,"completion":[0,14,44,98,154,250,298,300],"nNodes":300,"nReplication":5},
 {"runningTime":15,"completion":[0,10,4,0,0,10,4,16,4,44,84,114,222,296,300],"nNodes":300,"nReplication":5},
 {"runningTime":8,"completion":[0,12,56,88,104,184,256,300],"nNodes":300,"nReplication":5},
@@ -1198,3 +1199,4 @@
 {"runningTime":7,"completion":[0,14,70,130,232,284,300],"nNodes":300,"nReplication":5},
 {"runningTime":9,"completion":[0,2,34,62,106,158,244,294,300],"nNodes":300,"nReplication":5},
 {"runningTime":9,"completion":[0,2,28,28,44,120,176,262,300],"nNodes":300,"nReplication":5},
+]

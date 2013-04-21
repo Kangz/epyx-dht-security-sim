@@ -1,3 +1,4 @@
+[
 {"runningTime":9,"completion":[3,16,102,645,3886,23567,132384,295229,300000],"nNodes":300000,"nReplication":5},
 {"runningTime":9,"completion":[1,6,40,251,1535,12285,112723,293433,300000],"nNodes":300000,"nReplication":5},
 {"runningTime":9,"completion":[3,21,137,812,4898,28915,152274,298537,300000],"nNodes":300000,"nReplication":5},
@@ -998,3 +999,4 @@
 {"runningTime":9,"completion":[0,3,18,112,724,5496,56797,272314,300000],"nNodes":300000,"nReplication":5},
 {"runningTime":9,"completion":[3,15,101,653,4038,24203,134602,295896,300000],"nNodes":300000,"nReplication":5},
 {"runningTime":9,"completion":[3,22,157,911,5431,31852,155249,297897,300000],"nNodes":300000,"nReplication":5},
+]
